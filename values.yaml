@@ -109,6 +109,9 @@ readinessProbe:
   timeoutSeconds: 3
   periodSeconds: 5
 
+## NGINX environment variables
+env: {}
+
 ## NGINX Service properties
 ##
 service:
