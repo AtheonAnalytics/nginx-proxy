@@ -171,7 +171,7 @@ $ kubectl patch deployment nginx --type=json -p='[{"op": "remove", "path": "/spe
 ## SubTree Fork
 
 ### Setting up a repository
-Start by cloning the whole XBMC repository.
+Start by cloning the whole `bitnami/charts` repository.
 
 ```
 git@github.com:bitnami/charts.git
