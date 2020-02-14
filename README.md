@@ -167,3 +167,80 @@ Use the workaround below to upgrade from versions previous to 1.0.0. The followi
 ```console
 $ kubectl patch deployment nginx --type=json -p='[{"op": "remove", "path": "/spec/selector/matchLabels/chart"}]'
 ```
+
+## SubTree Fork
+
+### Setting up a repository
+Start by cloning the whole XBMC repository.
+
+```
+git@github.com:bitnami/charts.git
+cd charts
+```
+
+We start on the master branch by default. We want to make our own master branch, so let's rename master to upstream-master.
+
+git branch -m upstream-master
+Now use git subtree split to only include the part that you want. We'll make the split off part a new branch called upstream-skin.
+
+```
+git subtree split --prefix=bitnami/nginx -b upstream-nginx
+git checkout upstream-nginx
+```
+This gives you a new upstream-skin branch that only contains the contents of `bitnami/nginx`, and with a filtered history that contains only the commits that modified files in `bitnami/nginx`.
+
+Now, let's set up our remotes. Since you cloned `bitnami/charts.git`, the origin remote will point there. Let's rename that to upstream.
+
+```
+git remote rename origin upstream
+```
+Make a repository on Github to contain your modifications to `bitnami/nginx`.
+
+```
+git remote add origin git@github.com:AtheonAnalytics/nginx-proxy.git
+git fetch origin
+git push -u origin upstream-nginx
+```
+Finally, we'll make a new branch called master that will contain your changes.
+
+```
+git checkout -b master
+git push -u origin master
+```
+You now have a "fork" of the `bitnami/nginx` subdirectory.
+
+### Making changes to your repositories
+When you're dealing with your own local and remote repositories, you can use normal git commands. Make sure to do this on the master branch (or some other branch, if you'd like) and not the upstream-skin branch, which should only ever contain commits from the upstream project.
+
+```
+git checkout master
+echo "example" > README
+git add README
+git commit -m "Added README"
+git push
+```
+### Receiving upstream commits
+When you're dealing with the upstream repository, you will have to use a mix of git and git subtree commands. To get new filtered commits, we need to do it in three stages.
+
+In the first stage, we'll update upstream-master to the current version of the `bitnami/charts` repository.
+
+```
+git checkout upstream-master
+git pull
+```
+This should pull down new commits, if there are any.
+
+Next, we will update upstream-nginx with the new filtered version of the commits. Since git subtree ensures that commit hashes will be the same, this should be a clean process. Note that you want to run these commands while still on the upstream-master branch.
+
+```
+git subtree split --prefix=bitnami/nginx \
+  --onto upstream-nginx -b upstream-nginx
+```
+With upstream-skin now updated, you can update your master branch as you see fit (either by merging or rebasing).
+
+```
+git checkout master
+git rebase upstream-skin
+```
+
+Note that the `bitnami/charts` repository is gigantic, and the git subtree commands will take quite a bit of time to filter through all that history -- and since you're regenerating the split subtree each time you interact with the remote repository, it's quite an expensive operation. I'm not sure if this can be sped up.
