@@ -19,8 +19,10 @@ spec:
         paths:
           - path: /
             backend:
-              serviceName: "{{ template "nginx.fullname" $ }}"
-              servicePort: http
+              service:
+                name: "{{ template "nginx.fullname" $ }}"
+                port:
+                  name: http
     {{- end }}
     {{- range .Values.ingress.hosts }}
     - host: {{ .name }}
@@ -28,8 +30,10 @@ spec:
         paths:
           - path: {{ default "/" .path }}
             backend:
-              serviceName: "{{ template "nginx.fullname" $ }}"
-              servicePort: http
+              service:
+                name: "{{ template "nginx.fullname" $ }}"
+                port:
+                  name: http
     {{- end }}
   {{- if .Values.ingress.tls }}
   tls: {{- toYaml .Values.ingress.tls | nindent 4 }}
